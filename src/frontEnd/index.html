@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>FCM Javascript push & Send Notification</title>
+    <link rel="manifest" href="manifest.json">
+
+    <!--  FIREBASE     -->
+    <script src="https://www.gstatic.com/firebasejs/7.2.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/7.2.1/firebase-messaging.js"></script>
+    <!--  FIREBASE     -->
+
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
+    <script src="https://code.jquery.com/jquery-3.4.1.slim.min.js" integrity="sha384-J6qa4849blE2+poT4WnyKhv5vZF5SrPo0iEjwBvKU7imGFAV0wwj1yYfoRSJoZ+n" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js" integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo" crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js" integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6" crossorigin="anonymous"></script>
+    
+    <!--   FIREBASE  -->
+    <script>
+        // Inicializa Firebase de acuerdo a las credeciales.
+        var config = {
+            apiKey: "AIzaSyDE_VMW737KrSPxssSdywLfondzpsGNZ6I",
+            authDomain: "notificacionjava.firebaseapp.com",
+            databaseURL: "https://notificacionjava.firebaseio.com",
+            projectId: "notificacionjava",
+            storageBucket: "notificacionjava.appspot.com",
+            messagingSenderId: "204782437491",
+            appId: "1:204782437491:web:c0657657104c040df2d606"
+        };
+        firebase.initializeApp(config);
+        /////////////////////////////////////////////////////
+
+
+        // Inicializa el Mensaje de Firebase de acuerdo al ID del proyecto
+        const messaging = firebase.messaging();
+        messaging.usePublicVapidKey('BBgAtnvInI0TKvqWog20DkzDZb5ILpIcsuPvKVlXnu_D6LTnHdImTB8L9Fb174i0SMWmZfygNDSb9yQJ1zVietQ');
+        ////////////////////////////////////////////////////
+        navigator.serviceWorker.register('./firebase-messaging.sw.js')
+            .then((registration) => {
+                messaging.useServiceWorker(registration);
+                Notification.requestPermission().then(() => {
+                    console.log("Permisos Permitidos");
+                    return messaging.getToken();
+                }).then(function(token) {
+                    console.log("Obteniendo Token");
+                    console.log("Valor del Token    " + token);
+                    document.getElementById('token').innerHTML = token;
+                }).catch(function(error) {
+                    console.log("Error al permitir los permisos.   " + error);
+                });
+
+                messaging.onMessage(function(payload) {
+                    //console.log('onMessage: ', payload);
+                    var message = document.getElementById('message').innerHTML;
+                    message = message + '<div>' + JSON.stringify(payload) + '</div>';
+                    document.getElementById('message').innerHTML = message;
+
+                    console.log('===========  onMessage  ===========');
+                    console.log(payload);
+                    //console.log(payload.notification.title);
+                    console.log('======================');
+
+
+
+                    var notificationTitle = payload.notification.title;
+                    var notificationOptions = {
+                        body: payload.notification.body,
+                        icon: payload.notification.icon,
+                        image: payload.notification.image
+                        //background: 
+                    };
+
+                    if (!("Notification" in window)) {
+                        console.log('Navegador no soportado.');
+                    } else if (Notification.permission === 'granted') {
+                        var notification = new Notification(notificationTitle, notificationOptions);
+                        notification.onclick = function(event) {
+                            event.preventDefault();
+                            window.open(payload.notification.click_action, 'blank_');
+                            notification.close();
+                        }
+                    }
+
+
+
+
+
+                });
+
+            });
+    </script>
+    <!--   FIREBASE  -->
+
+
+
+</head>
+
+<body>
+
+
+    <h1>Notificación Firebase Desde Web</h1>
+    <div>token</div>
+    <div id="token"></div>
+    <div>Message</div>
+    <div id='message'></div>
+    <div>
+        ---------------------------------------------------------------
+    </div>
+
+</body>
+
+</html>
